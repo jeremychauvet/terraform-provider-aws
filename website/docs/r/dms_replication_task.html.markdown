@@ -37,8 +37,8 @@ resource "aws_dms_replication_task" "test" {
 
 The following arguments are supported:
 
-* `cdc_start_position` - (Optional, Conflicts with `cdc_start_time`) Indicates when you want a change data capture (CDC) operation to start. The value can be in date, checkpoint, or LSN/SCN format depending on the source engine. For more information, see [Determining a CDC native start point](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html#CHAP_Task.CDC.StartPoint.Native).
-* `cdc_start_time` - (Optional, Conflicts with `cdc_start_position`) The Unix timestamp integer for the start of the Change Data Capture (CDC) operation.
+* `cdc_start_position` - (Optional, Conflicts with `cdc_start_time`) Indicates when you want a Change Data Capture (CDC) operation to start. The value can be in date (format: 2018-03-08T12:12:12), checkpoint (format: checkpoint:V1#27#mysql-bin-changelog.157832:1975:-1:2002:677883278264080:mysql-bin-changelog.157832:1876#0#0#*#0#93), or LSN/SCN (format: mysql-bin-changelog.000024:373) depending on the source engine. For more information, see [Determining a CDC native start point](https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Task.CDC.html#CHAP_Task.CDC.StartPoint.Native).
+* `cdc_start_time` - (Optional, Conflicts with `cdc_start_position`) Indicates the start time (format: 2018-03-08T12:12:12) for a Change Data Capture (CDC) operation.
 * `migration_type` - (Required) The migration type. Can be one of `full-load | cdc | full-load-and-cdc`.
 * `replication_instance_arn` - (Required) The Amazon Resource Name (ARN) of the replication instance.
 * `replication_task_id` - (Required) The replication task identifier.
