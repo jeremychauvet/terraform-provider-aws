@@ -407,7 +407,7 @@ resource "aws_rds_cluster_parameter_group" "test" {
 resource "aws_rds_cluster" "test1" {
   cluster_identifier              = "%[1]s-aurora-cluster-source"
   engine                          = "aurora-mysql"
-  engine_version                  = "5.7.mysql_aurora.2.03.2"
+  engine_version                  = "5.7.mysql_aurora.2.10.0"
   database_name                   = "tftest"
   master_username                 = "tftest"
   master_password                 = "mustbeeightcharaters"
@@ -429,7 +429,7 @@ resource "aws_rds_cluster_instance" "test1" {
 resource "aws_rds_cluster" "test2" {
   cluster_identifier     = "%[1]s-aurora-cluster-target"
   engine                 = "aurora-mysql"
-  engine_version         = "5.7.mysql_aurora.2.03.2"
+  engine_version         = "5.7.mysql_aurora.2.10.0"
   database_name          = "tftest"
   master_username        = "tftest"
   master_password        = "mustbeeightcharaters"
