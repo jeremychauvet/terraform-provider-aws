@@ -37,9 +37,8 @@ func ResourceReplicationTask() *schema.Resource {
 				ConflictsWith: []string{"cdc_start_time"},
 			},
 			"cdc_start_time": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// Requires a Unix timestamp in seconds. Example 1484346880
+				Type:          schema.TypeString,
+				Optional:      true,
 				ConflictsWith: []string{"cdc_start_position"},
 			},
 			"migration_type": {
