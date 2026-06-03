@@ -72,3 +72,23 @@ This data source exports the following attributes in addition to the arguments a
 * `hosted_zone_id` - The [Route 53 Hosted Zone ID](https://docs.aws.amazon.com/general/latest/gr/rande.html#s3_website_region_endpoints) for this bucket's region.
 * `website_endpoint` - Website endpoint, if the bucket is configured with a website. If not, this will be an empty string.
 * `website_domain` - Domain of the website endpoint, if the bucket is configured with a website. If not, this will be an empty string. This is used to create Route 53 alias records.
+* `block_public_acls` - Whether Amazon S3 blocks public ACLs for this bucket.
+* `block_public_policy` - Whether Amazon S3 blocks public bucket policies for this bucket.
+* `ignore_public_acls` - Whether Amazon S3 ignores public ACLs for this bucket.
+* `restrict_public_buckets` - Whether Amazon S3 restricts public bucket policies for this bucket.
+* `server_side_encryption_configuration` - Default server-side encryption configuration of the bucket. See [`server_side_encryption_configuration`](#server_side_encryption_configuration) below.
+
+### server_side_encryption_configuration
+
+* `rule` - Server-side encryption configuration rules. See [`rule`](#rule) below.
+
+### rule
+
+* `apply_server_side_encryption_by_default` - Default server-side encryption applied to new objects in the bucket. See [`apply_server_side_encryption_by_default`](#apply_server_side_encryption_by_default) below.
+* `blocked_encryption_types` - Server-side encryption algorithms blocked for new object uploads to the bucket.
+* `bucket_key_enabled` - Whether an Amazon S3 Bucket Key is enabled for SSE-KMS.
+
+### apply_server_side_encryption_by_default
+
+* `sse_algorithm` - Server-side encryption algorithm used.
+* `kms_master_key_id` - AWS KMS master key ID used for the SSE-KMS encryption, if applicable.

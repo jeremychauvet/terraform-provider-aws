@@ -9,6 +9,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/arn"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/aws-sdk-go-base/v2/endpoints"
@@ -57,6 +58,63 @@ func dataSourceBucket() *schema.Resource {
 			"website_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"block_public_acls": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"block_public_policy": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"ignore_public_acls": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"restrict_public_buckets": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"server_side_encryption_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						names.AttrRule: {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"apply_server_side_encryption_by_default": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"kms_master_key_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"sse_algorithm": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+									"blocked_encryption_types": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+									"bucket_key_enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -107,6 +165,25 @@ func dataSourceBucketRead(ctx context.Context, d *schema.ResourceData, meta any)
 		d.Set("website_endpoint", endpoint)
 	} else if !retry.NotFound(err) {
 		log.Printf("[WARN] Reading S3 Bucket (%s) Website: %s", bucket, err)
+	}
+
+	if sse, err := findServerSideEncryptionConfiguration(ctx, conn, bucket, ""); err == nil {
+		if err := d.Set("server_side_encryption_configuration", []any{map[string]any{
+			names.AttrRule: flattenServerSideEncryptionRules(sse.Rules),
+		}}); err != nil {
+			return sdkdiag.AppendErrorf(diags, "setting server_side_encryption_configuration: %s", err)
+		}
+	} else if !retry.NotFound(err) {
+		log.Printf("[WARN] Reading S3 Bucket (%s) Server-side Encryption Configuration: %s", bucket, err)
+	}
+
+	if pabc, err := findPublicAccessBlockConfiguration(ctx, conn, bucket); err == nil {
+		d.Set("block_public_acls", aws.ToBool(pabc.BlockPublicAcls))
+		d.Set("block_public_policy", aws.ToBool(pabc.BlockPublicPolicy))
+		d.Set("ignore_public_acls", aws.ToBool(pabc.IgnorePublicAcls))
+		d.Set("restrict_public_buckets", aws.ToBool(pabc.RestrictPublicBuckets))
+	} else if !retry.NotFound(err) {
+		log.Printf("[WARN] Reading S3 Bucket (%s) Public Access Block: %s", bucket, err)
 	}
 
 	return diags

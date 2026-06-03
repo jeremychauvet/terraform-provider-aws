@@ -130,6 +130,33 @@ func TestAccS3BucketDataSource_crossRegion(t *testing.T) {
 	})
 }
 
+func TestAccS3BucketDataSource_encryptionAndPublicAccessBlock(t *testing.T) {
+	ctx := acctest.Context(t)
+	rName := acctest.RandomWithPrefix(t, acctest.ResourcePrefix)
+	dataSourceName := "data.aws_s3_bucket.test"
+
+	acctest.ParallelTest(ctx, t, resource.TestCase{
+		PreCheck:                 func() { acctest.PreCheck(ctx, t) },
+		ErrorCheck:               acctest.ErrorCheck(t, names.S3ServiceID),
+		ProtoV5ProviderFactories: acctest.ProtoV5ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBucketDataSourceConfig_encryptionAndPublicAccessBlock(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "server_side_encryption_configuration.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "server_side_encryption_configuration.0.rule.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "server_side_encryption_configuration.0.rule.0.apply_server_side_encryption_by_default.0.sse_algorithm", "AES256"),
+					resource.TestCheckResourceAttr(dataSourceName, "server_side_encryption_configuration.0.rule.0.bucket_key_enabled", acctest.CtTrue),
+					resource.TestCheckResourceAttr(dataSourceName, "block_public_acls", acctest.CtTrue),
+					resource.TestCheckResourceAttr(dataSourceName, "block_public_policy", acctest.CtTrue),
+					resource.TestCheckResourceAttr(dataSourceName, "ignore_public_acls", acctest.CtTrue),
+					resource.TestCheckResourceAttr(dataSourceName, "restrict_public_buckets", acctest.CtTrue),
+				),
+			},
+		},
+	})
+}
+
 func testAccBucketDataSourceConfig_basic(rName string) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "test" {
@@ -227,4 +254,42 @@ data "aws_s3_bucket" "test" {
   bucket = aws_s3_bucket.test.id
 }
 `, rName))
+}
+
+func testAccBucketDataSourceConfig_encryptionAndPublicAccessBlock(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "test" {
+  bucket = %[1]q
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "test" {
+  bucket = aws_s3_bucket.test.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "test" {
+  bucket = aws_s3_bucket.test.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+data "aws_s3_bucket" "test" {
+  bucket = aws_s3_bucket.test.id
+
+  depends_on = [
+    aws_s3_bucket_server_side_encryption_configuration.test,
+    aws_s3_bucket_public_access_block.test,
+  ]
+}
+`, rName)
 }
